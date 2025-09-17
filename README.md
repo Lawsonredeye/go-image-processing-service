@@ -10,4 +10,12 @@ This image processing service is intended for web developers and businesses look
 - **Image Processing Library**: [Imaging](https://pkg.go.dev/image)
 - **Database**: PostgreSQL (for storing image metadata), sqlite3 (for testing)
 
-##
+## AI Features & Tools
+- **Scaffolding**: scaffold file structure  and boilerplate code.
+- **Test Generation**: generate unit tests for image processing functions.
+- **Documentation**: generate API documentation and usage guides.
+- **Code Optimization**: suggest performance improvements for image processing algorithms.
+- **Error Handling**: provide robust error handling and logging mechanisms.
+- **Security**: implement security best practices for handling file uploads and preventing vulnerabilities.
+
+
