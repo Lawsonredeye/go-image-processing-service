@@ -343,3 +343,65 @@ func TestRotateHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestCropHandler(t *testing.T) {
+	testCases := []struct {
+		name               string
+		url                string
+		expectedStatusCode int
+		checkResponse      func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "Success - Valid Crop",
+			url:  "/crop?x=2&y=2&width=5&height=5",
+			expectedStatusCode: http.StatusOK,
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				img, _, err := image.Decode(recorder.Body)
+				if err != nil {
+					t.Fatalf("Failed to decode response image: %v", err)
+				}
+				if img.Bounds().Dx() != 5 || img.Bounds().Dy() != 5 {
+					t.Errorf("Expected image dimensions 5x5, got %dx%d", img.Bounds().Dx(), img.Bounds().Dy())
+				}
+			},
+		},
+		{
+			name: "Failure - Missing All Params",
+			url:  "/crop",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "Failure - Missing One Param",
+			url:  "/crop?x=10&y=10&width=50", // Missing height
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "Failure - Invalid Param Type",
+			url:  "/crop?x=10&y=ten&width=50&height=50",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			imgBuf, _ := createDummyImage()
+			body := new(bytes.Buffer)
+			writer := multipart.NewWriter(body)
+			part, _ := writer.CreateFormFile("image", "test.png")
+			part.Write(imgBuf.Bytes())
+			writer.Close()
+			req := createImageUploadRequest(tc.url, body, writer.FormDataContentType())
+
+			recorder := httptest.NewRecorder()
+			api.CropHandler(recorder, req)
+
+			if recorder.Code != tc.expectedStatusCode {
+				t.Errorf("Expected status code %d, got %d", tc.expectedStatusCode, recorder.Code)
+			}
+
+			if tc.checkResponse != nil {
+				tc.checkResponse(t, recorder)
+			}
+		})
+	}
+}

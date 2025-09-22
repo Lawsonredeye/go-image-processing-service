@@ -279,6 +279,53 @@ func RotateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CropHandler processes an image and crops it to a specified rectangle.
+//
+// It expects a POST request with an "image" form field.
+// Four required integer query parameters must be provided: `x`, `y`, `width`, `height`.
+func CropHandler(w http.ResponseWriter, r *http.Request) {
+	src, err := decodeImageFromRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Parse all four crop parameters.
+	xStr := r.URL.Query().Get("x")
+	yStr := r.URL.Query().Get("y")
+	widthStr := r.URL.Query().Get("width")
+	heightStr := r.URL.Query().Get("height")
+
+	if xStr == "" || yStr == "" || widthStr == "" || heightStr == "" {
+		http.Error(w, "Missing one or more crop parameters. Required: x, y, width, height", http.StatusBadRequest)
+		return
+	}
+
+	x, errX := strconv.Atoi(xStr)
+	y, errY := strconv.Atoi(yStr)
+	width, errWidth := strconv.Atoi(widthStr)
+	height, errHeight := strconv.Atoi(heightStr)
+
+	if errX != nil || errY != nil || errWidth != nil || errHeight != nil {
+		http.Error(w, "Invalid crop parameters. All must be integers.", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Cropping with rect: x=%d, y=%d, width=%d, height=%d", x, y, width, height)
+
+	g := gift.New(
+		gift.Crop(image.Rect(x, y, x+width, y+height)),
+	)
+
+	dst := image.NewRGBA(g.Bounds(src.Bounds()))
+	g.Draw(dst, src)
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if err := jpeg.Encode(w, dst, nil); err != nil {
+		http.Error(w, "Could not encode cropped image", http.StatusInternalServerError)
+	}
+}
+
 // decodeImageFromRequest is a helper function to reduce boilerplate in handlers.
 // It handles the request parsing, file seeking, and decoding.
 func decodeImageFromRequest(r *http.Request) (image.Image, error) {
