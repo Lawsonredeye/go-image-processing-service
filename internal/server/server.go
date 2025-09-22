@@ -28,6 +28,7 @@ func (s *Server) Start() {
 	http.HandleFunc("/convert", api.ConvertHandler)
 	http.HandleFunc("/flip", api.FlipHandler)
 	http.HandleFunc("/rotate", api.RotateHandler)
+	http.HandleFunc("/crop", api.CropHandler)
 
 	fmt.Printf("Starting server on http://localhost:%s\n", s.port)
 	log.Fatal(http.ListenAndServe(":"+s.port, nil))
