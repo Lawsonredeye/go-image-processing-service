@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	_ "image/png" // Import for PNG decoding side-effects
+	"image/png" // Import for PNG decoding side-effects
 	"log"
 	"net/http"
 	"strconv"
@@ -141,5 +141,64 @@ func CompressHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error encoding compressed image: %v", err)
 		http.Error(w, "Could not encode compressed image", http.StatusInternalServerError)
 		return
+	}
+}
+
+// ConvertHandler processes an image and converts it to a different format.
+//
+// It expects a POST request with a form field named "image" containing the image file.
+// A required query parameter `format` must be provided, which can be "jpeg" or "png".
+//
+// Upon successful processing, it returns the new image encoded in the specified format
+// with the corresponding Content-Type header.
+func ConvertHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		http.Error(w, "Failed to parse multipart form", http.StatusBadRequest)
+		return
+	}
+
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "Could not get uploaded file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		http.Error(w, "Could not rewind file", http.StatusInternalServerError)
+		return
+	}
+
+	src, _, err := image.Decode(file)
+	if err != nil {
+		log.Printf("Error decoding image: %v", err)
+		http.Error(w, fmt.Sprintf("Could not decode image: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Get target format from query parameter
+	format := r.URL.Query().Get("format")
+
+	switch format {
+	case "jpeg", "jpg":
+		w.Header().Set("Content-Type", "image/jpeg")
+		err = jpeg.Encode(w, src, nil) // Use default quality
+	case "png":
+		w.Header().Set("Content-Type", "image/png")
+		err = png.Encode(w, src)
+	default:
+		http.Error(w, `Invalid or missing 'format' parameter. Supported formats: jpeg, png`, http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		log.Printf("Error encoding image to %s: %v", format, err)
+		http.Error(w, "Could not encode image", http.StatusInternalServerError)
 	}
 }
