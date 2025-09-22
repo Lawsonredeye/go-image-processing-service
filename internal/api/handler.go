@@ -7,21 +7,22 @@ import (
 	_ "image/png" // Import for PNG decoding side-effects
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/disintegration/gift"
 )
 
-// ResizeHandler processes an image uploaded via a multipart form.
+// ResizeHandler processes an image uploaded via a multipart form and resizes it.
 //
 // It expects a POST request with a form field named "image" containing the image file.
 // The handler supports decoding of JPEG and PNG image formats.
 //
-// Upon successful processing, it performs a resize operation (currently to a fixed
-// width of 500px while preserving aspect ratio) and returns the new image
-// encoded as a JPEG with a "Content-Type" of "image/jpeg".
+// Optional query parameters `width` and `height` (integers) can be provided to specify
+// the desired dimensions. If a dimension is not provided or is invalid, it is treated as 0.
+// - If both width and height are 0, a default width of 500 is used, preserving aspect ratio.
+// - If one dimension is 0, it's calculated to preserve the original aspect ratio.
 //
-// If any step fails (e.g., missing file, decoding error), it returns an appropriate
-// HTTP error status code and a descriptive error message.
+// Upon successful processing, it returns the new image encoded as a JPEG.
 func ResizeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
@@ -56,8 +57,19 @@ func ResizeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Successfully decoded image, format: %s", format)
 
+	// Parse width and height from query parameters.
+	width, _ := strconv.Atoi(r.URL.Query().Get("width"))
+	height, _ := strconv.Atoi(r.URL.Query().Get("height"))
+
+	// If no dimensions are provided, apply a default.
+	if width == 0 && height == 0 {
+		width = 500
+	}
+
+	log.Printf("Resizing to width: %d, height: %d", width, height)
+
 	g := gift.New(
-		gift.Resize(500, 0, gift.LanczosResampling),
+		gift.Resize(width, height, gift.LanczosResampling),
 	)
 
 	dst := image.NewRGBA(g.Bounds(src.Bounds()))
