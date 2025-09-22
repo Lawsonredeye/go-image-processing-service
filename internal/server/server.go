@@ -25,6 +25,9 @@ func New(port string) *Server {
 func (s *Server) Start() {
 	http.HandleFunc("/resize", api.ResizeHandler)
 	http.HandleFunc("/compress", api.CompressHandler)
+	http.HandleFunc("/convert", api.ConvertHandler)
+	http.HandleFunc("/flip", api.FlipHandler)
+	http.HandleFunc("/rotate", api.RotateHandler)
 
 	fmt.Printf("Starting server on http://localhost:%s\n", s.port)
 	log.Fatal(http.ListenAndServe(":"+s.port, nil))
