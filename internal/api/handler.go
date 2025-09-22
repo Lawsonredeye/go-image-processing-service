@@ -202,3 +202,109 @@ func ConvertHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not encode image", http.StatusInternalServerError)
 	}
 }
+
+// FlipHandler processes an image and flips it horizontally or vertically.
+//
+// It expects a POST request with an "image" form field.
+// A required `direction` query parameter must be "horizontal" or "vertical".
+func FlipHandler(w http.ResponseWriter, r *http.Request) {
+	// Basic boilerplate for decoding an image
+	src, err := decodeImageFromRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	direction := r.URL.Query().Get("direction")
+
+	var filter gift.Filter
+	switch direction {
+	case "horizontal":
+		filter = gift.FlipHorizontal()
+	case "vertical":
+		filter = gift.FlipVertical()
+	default:
+		http.Error(w, "Invalid or missing 'direction' parameter. Supported: horizontal, vertical", http.StatusBadRequest)
+		return
+	}
+
+	g := gift.New(filter)
+	dst := image.NewRGBA(g.Bounds(src.Bounds()))
+	g.Draw(dst, src)
+
+	// Encode and send back as JPEG
+	w.Header().Set("Content-Type", "image/jpeg")
+	if err := jpeg.Encode(w, dst, nil); err != nil {
+		http.Error(w, "Could not encode flipped image", http.StatusInternalServerError)
+	}
+}
+
+// RotateHandler processes an image and rotates it by a 90-degree increment.
+//
+// It expects a POST request with an "image" form field.
+// A required `angle` query parameter must be 90, 180, or 270.
+func RotateHandler(w http.ResponseWriter, r *http.Request) {
+	src, err := decodeImageFromRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	angle, err := strconv.Atoi(r.URL.Query().Get("angle"))
+	if err != nil {
+		http.Error(w, "Invalid 'angle' parameter. Must be an integer.", http.StatusBadRequest)
+		return
+	}
+
+	var filter gift.Filter
+	switch angle {
+	case 90:
+		filter = gift.Rotate90()
+	case 180:
+		filter = gift.Rotate180()
+	case 270:
+		filter = gift.Rotate270()
+	default:
+		http.Error(w, "Invalid 'angle' parameter. Supported: 90, 180, 270", http.StatusBadRequest)
+		return
+	}
+
+	g := gift.New(filter)
+	dst := image.NewRGBA(g.Bounds(src.Bounds()))
+	g.Draw(dst, src)
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if err := jpeg.Encode(w, dst, nil); err != nil {
+		http.Error(w, "Could not encode rotated image", http.StatusInternalServerError)
+	}
+}
+
+// decodeImageFromRequest is a helper function to reduce boilerplate in handlers.
+// It handles the request parsing, file seeking, and decoding.
+func decodeImageFromRequest(r *http.Request) (image.Image, error) {
+	if r.Method != http.MethodPost {
+		return nil, fmt.Errorf("only POST method is allowed")
+	}
+
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		return nil, fmt.Errorf("failed to parse multipart form")
+	}
+
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		return nil, fmt.Errorf("could not get uploaded file")
+	}
+	defer file.Close()
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return nil, fmt.Errorf("could not rewind file")
+	}
+
+	src, _, err := image.Decode(file)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode image: %v", err)
+	}
+
+	return src, nil
+}

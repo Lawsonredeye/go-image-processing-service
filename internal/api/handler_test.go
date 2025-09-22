@@ -279,3 +279,67 @@ func TestConvertHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestFlipHandler(t *testing.T) {
+	testCases := []struct {
+		name               string
+		url                string
+		expectedStatusCode int
+	}{
+		{"Success - Horizontal", "/flip?direction=horizontal", http.StatusOK},
+		{"Success - Vertical", "/flip?direction=vertical", http.StatusOK},
+		{"Failure - Missing Direction", "/flip", http.StatusBadRequest},
+		{"Failure - Invalid Direction", "/flip?direction=diagonal", http.StatusBadRequest},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			imgBuf, _ := createDummyImage()
+			body := new(bytes.Buffer)
+			writer := multipart.NewWriter(body)
+			part, _ := writer.CreateFormFile("image", "test.png")
+			part.Write(imgBuf.Bytes())
+			writer.Close()
+			req := createImageUploadRequest(tc.url, body, writer.FormDataContentType())
+
+			recorder := httptest.NewRecorder()
+			api.FlipHandler(recorder, req)
+
+			if recorder.Code != tc.expectedStatusCode {
+				t.Errorf("Expected status code %d, got %d", tc.expectedStatusCode, recorder.Code)
+			}
+		})
+	}
+}
+
+func TestRotateHandler(t *testing.T) {
+	testCases := []struct {
+		name               string
+		url                string
+		expectedStatusCode int
+	}{
+		{"Success - 90 degrees", "/rotate?angle=90", http.StatusOK},
+		{"Success - 180 degrees", "/rotate?angle=180", http.StatusOK},
+		{"Failure - Missing Angle", "/rotate", http.StatusBadRequest},
+		{"Failure - Invalid Angle", "/rotate?angle=45", http.StatusBadRequest},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			imgBuf, _ := createDummyImage()
+			body := new(bytes.Buffer)
+			writer := multipart.NewWriter(body)
+			part, _ := writer.CreateFormFile("image", "test.png")
+			part.Write(imgBuf.Bytes())
+			writer.Close()
+			req := createImageUploadRequest(tc.url, body, writer.FormDataContentType())
+
+			recorder := httptest.NewRecorder()
+			api.RotateHandler(recorder, req)
+
+			if recorder.Code != tc.expectedStatusCode {
+				t.Errorf("Expected status code %d, got %d", tc.expectedStatusCode, recorder.Code)
+			}
+		})
+	}
+}
