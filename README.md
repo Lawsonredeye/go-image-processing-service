@@ -41,6 +41,11 @@ The service exposes several endpoints for image manipulation. All endpoints expe
     - **Behavior**: Fails if the angle is missing or unsupported.
     - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/rotate?angle=90"`
 
+- **`/crop`**: Crops an image to a specified rectangle.
+    - **Query Params**: `x` (int), `y` (int), `width` (int), `height` (int)
+    - **Behavior**: Fails if any parameter is missing or invalid.
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/crop?x=10&y=10&width=100&height=100"`
+
 ## Setup and Run Instructions
 
 ### Prerequisites
