@@ -84,3 +84,62 @@ func ResizeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Successfully resized and sent image.")
 }
+
+// CompressHandler processes an image uploaded via a multipart form and adjusts its JPEG quality.
+//
+// It expects a POST request with a form field named "image" containing the image file.
+// The handler supports decoding of JPEG and PNG image formats.
+//
+// An optional query parameter `quality` (integer 1-100) can be provided.
+// If the quality is not provided or is invalid, a default quality of 75 is used.
+//
+// The handler always returns a JPEG image.
+func CompressHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		http.Error(w, "Failed to parse multipart form", http.StatusBadRequest)
+		return
+	}
+
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "Could not get uploaded file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		http.Error(w, "Could not rewind file", http.StatusInternalServerError)
+		return
+	}
+
+	src, _, err := image.Decode(file)
+	if err != nil {
+		log.Printf("Error decoding image: %v", err)
+		http.Error(w, fmt.Sprintf("Could not decode image: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parse quality from query parameter.
+	quality, err := strconv.Atoi(r.URL.Query().Get("quality"))
+	if err != nil || quality < 1 || quality > 100 {
+		quality = 75 // Default quality
+	}
+
+	log.Printf("Encoding with JPEG quality: %d", quality)
+
+	opts := &jpeg.Options{Quality: quality}
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	err = jpeg.Encode(w, src, opts)
+	if err != nil {
+		log.Printf("Error encoding compressed image: %v", err)
+		http.Error(w, "Could not encode compressed image", http.StatusInternalServerError)
+		return
+	}
+}

@@ -128,3 +128,67 @@ func TestResizeHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestCompressHandler(t *testing.T) {
+	// --- Test Cases Definition ---
+	testCases := []struct {
+		name               string
+		requestSetup       func() *http.Request
+		expectedStatusCode int
+	}{
+		{
+			name: "Success - Custom Quality",
+			requestSetup: func() *http.Request {
+				imgBuf, _ := createDummyImage()
+				body := new(bytes.Buffer)
+				writer := multipart.NewWriter(body)
+				part, _ := writer.CreateFormFile("image", "test.png")
+				part.Write(imgBuf.Bytes())
+				writer.Close()
+				return createImageUploadRequest("/compress?quality=50", body, writer.FormDataContentType())
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "Success - Default Quality",
+			requestSetup: func() *http.Request {
+				imgBuf, _ := createDummyImage()
+				body := new(bytes.Buffer)
+				writer := multipart.NewWriter(body)
+				part, _ := writer.CreateFormFile("image", "test.png")
+				part.Write(imgBuf.Bytes())
+				writer.Close()
+				return createImageUploadRequest("/compress", body, writer.FormDataContentType())
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "Success - Invalid Quality Fallback to Default",
+			requestSetup: func() *http.Request {
+				imgBuf, _ := createDummyImage()
+				body := new(bytes.Buffer)
+				writer := multipart.NewWriter(body)
+				part, _ := writer.CreateFormFile("image", "test.png")
+				part.Write(imgBuf.Bytes())
+				writer.Close()
+				return createImageUploadRequest("/compress?quality=abc", body, writer.FormDataContentType())
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+
+	// --- Test Runner ---
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			recorder := httptest.NewRecorder()
+			req := tc.requestSetup()
+
+			// This will fail to compile until we create the handler.
+			api.CompressHandler(recorder, req)
+
+			if recorder.Code != tc.expectedStatusCode {
+				t.Errorf("Expected status code %d, got %d", tc.expectedStatusCode, recorder.Code)
+			}
+		})
+	}
+}

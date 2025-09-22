@@ -24,6 +24,7 @@ func New(port string) *Server {
 // It will block until the server is stopped or a fatal error occurs.
 func (s *Server) Start() {
 	http.HandleFunc("/resize", api.ResizeHandler)
+	http.HandleFunc("/compress", api.CompressHandler)
 
 	fmt.Printf("Starting server on http://localhost:%s\n", s.port)
 	log.Fatal(http.ListenAndServe(":"+s.port, nil))
