@@ -5,7 +5,7 @@ An image processing microservice built in Go, designed to handle image uploads, 
 This image processing service is intended for web developers and businesses looking to efficiently manage and deliver images on their platforms, enhancing user experience through faster load times and better image quality.
 
 ## Tech Stack
-- **Language**: Go
+- **Language**: Go, react
 - **Framework**: [Gin (for HTTP routing)](https://gin-gonic.com/en/docs/) or [net/http (for a more lightweight approach)](https://pkg.go.dev/net/http)
 - **Image Processing Library**: [Imaging](https://pkg.go.dev/image)
 - **Database**: PostgreSQL (for storing image metadata), sqlite3 (for testing)
@@ -18,4 +18,9 @@ This image processing service is intended for web developers and businesses look
 - **Error Handling**: provide robust error handling and logging mechanisms.
 - **Security**: implement security best practices for handling file uploads and preventing vulnerabilities.
 
+More AI features can be integrated as needed.
 
+
+Act as a senior golang developer experinced in building backend services and microservices. You have a strong understanding of web development, RESTful APIs, and image processing techniques. You are proficient in using Go libraries and frameworks to create efficient and scalable applications. Your expertise includes designing robust systems that can handle high traffic and large volumes of data, ensuring optimal performance and reliability.
+
+i want to create an image processing service in golang and react for the frontend. The service should allow users to upload images, perform various transformations (like resizing, cropping, and format conversion), and serve optimized images for web applications. The service should be designed to handle high traffic and large volumes of images efficiently.
