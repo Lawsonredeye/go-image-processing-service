@@ -1,26 +1,71 @@
 # Go Image Processing Service (GIPS)
 
-An image processing microservice built in Go, designed to handle image uploads, perform transformations (resize, crop, format conversion), and serve optimized images for web applications.
+An image processing service built in Go, designed to handle image uploads and perform various on-the-fly transformations.
 
-This image processing service is intended for web developers and businesses looking to efficiently manage and deliver images on their platforms, enhancing user experience through faster load times and better image quality.
+## Technologies Used
 
-## Tech Stack
-- **Language**: Go, react
-- **Framework**: [Gin (for HTTP routing)](https://gin-gonic.com/en/docs/) or [net/http (for a more lightweight approach)](https://pkg.go.dev/net/http)
-- **Image Processing Library**: [Imaging](https://pkg.go.dev/image)
-- **Database**: PostgreSQL (for storing image metadata), sqlite3 (for testing)
+- **Language**: Go
+- **Core Libraries**:
+    - `net/http` for the web server.
+    - `testing` and `net/http/httptest` for unit and integration tests.
+    - `image`, `image/jpeg`, `image/png` for image decoding and encoding.
+- **Third-Party Libraries**:
+    - `github.com/disintegration/gift`: For high-quality image filtering (resize, rotate, flip).
 
-## AI Features & Tools
-- **Scaffolding**: scaffold file structure  and boilerplate code.
-- **Test Generation**: generate unit tests for image processing functions.
-- **Documentation**: generate API documentation and usage guides.
-- **Code Optimization**: suggest performance improvements for image processing algorithms.
-- **Error Handling**: provide robust error handling and logging mechanisms.
-- **Security**: implement security best practices for handling file uploads and preventing vulnerabilities.
+## Features Implemented
 
-More AI features can be integrated as needed.
+The service exposes several endpoints for image manipulation. All endpoints expect a `POST` request with a multipart form containing an `image` field.
 
+- **`/resize`**: Resizes an image.
+    - **Query Params**: `width` (int), `height` (int)
+    - **Behavior**: Preserves aspect ratio if one dimension is omitted. Uses a default width of 500px if both are omitted.
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/resize?width=300"`
 
-Act as a senior golang developer experinced in building backend services and microservices. You have a strong understanding of web development, RESTful APIs, and image processing techniques. You are proficient in using Go libraries and frameworks to create efficient and scalable applications. Your expertise includes designing robust systems that can handle high traffic and large volumes of data, ensuring optimal performance and reliability.
+- **`/compress`**: Adjusts the quality of a JPEG image.
+    - **Query Params**: `quality` (int, 1-100)
+    - **Behavior**: Outputs a JPEG. Defaults to quality `75` if the parameter is missing or invalid.
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/compress?quality=50"`
 
-i want to create an image processing service in golang and react for the frontend. The service should allow users to upload images, perform various transformations (like resizing, cropping, and format conversion), and serve optimized images for web applications. The service should be designed to handle high traffic and large volumes of images efficiently.
+- **`/convert`**: Converts an image from one format to another.
+    - **Query Params**: `format` (string, "jpeg" or "png")
+    - **Behavior**: Fails if the format is missing or unsupported.
+    - **Example**: `curl -X POST -F "image=@/path/to/img.jpg" "http://localhost:8080/convert?format=png"`
+
+- **`/flip`**: Flips an image.
+    - **Query Params**: `direction` (string, "horizontal" or "vertical")
+    - **Behavior**: Fails if the direction is missing or invalid.
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/flip?direction=horizontal"`
+
+- **`/rotate`**: Rotates an image by a 90-degree increment.
+    - **Query Params**: `angle` (int, 90, 180, or 270)
+    - **Behavior**: Fails if the angle is missing or unsupported.
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/rotate?angle=90"`
+
+## Setup and Run Instructions
+
+### Prerequisites
+- Go (version 1.18 or later)
+
+### Running the Service
+1.  Clone the repository.
+2.  Start the server:
+    ```sh
+    go run ./cmd/api
+    ```
+    The service will be available at `http://localhost:8080`.
+
+### Running Tests
+To run the complete test suite:
+```sh
+go test ./...
+```
+
+## Notes on AI Usage
+
+This project was developed with the assistance of a large language model (Gemini). The AI was used in the following contexts:
+
+- **Initial Scaffolding**: Generated the initial project structure (`cmd`/`internal`) and boilerplate code.
+- **Test-Driven Development (TDD)**: For each feature, the AI was prompted to write a comprehensive, table-driven test suite first. These tests initially failed as expected.
+- **Feature Implementation**: The AI then generated the handler logic required to make the tests pass for each feature (`resize`, `compress`, `convert`, `flip`, `rotate`).
+- **Debugging**: Collaboratively debugged issues, including multipart form decoding errors (`file.Seek`), missing image format decoders (`image: unknown format`), and Go syntax errors (`imported and not used`).
+- **Refactoring and Documentation**: Refactored the code to improve structure (e.g., adding the `decodeImageFromRequest` helper) and generated clear, well-formatted function documentation and this README file.
