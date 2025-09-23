@@ -1,0 +1,130 @@
+/* Layout */
+.container {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Card / Panel */
+.card {
+  border: 1px solid var(--border);
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+/* Typography */
+h1, h2 {
+  font-weight: 700;
+}
+
+p {
+  color: var(--muted-foreground);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+/* Custom File Input */
+.file-input-label {
+  display: block;
+  border: 2px dashed var(--border);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.file-input-label:hover {
+  border-color: var(--accent);
+}
+
+.file-input-label span {
+  font-weight: 500;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* Button */
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background-color: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.btn-primary:hover {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Results Section */
+.results-container {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+}
+
+.results-container img {
+  max-width: 300px;
+  border: 1px solid var(--border);
+}
+
+.results-info p {
+  margin: 0.5rem 0;
+  color: var(--foreground);
+}
+
+.results-info strong {
+  color: var(--muted-foreground);
+}
+
+.error-message {
+  color: var(--alert);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .results-container {
+    flex-direction: column;
+  }
+  .results-container img {
+    max-width: 100%;
+  }
+}
+
+/* Footer */
+.footer {
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  border-top: 1px solid var(--border);
+  margin-top: 4rem;
+}

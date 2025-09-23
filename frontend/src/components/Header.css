@@ -1,0 +1,79 @@
+.header {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.nav-brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+/* --- Desktop Navigation --- */
+.desktop-nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.desktop-nav a {
+  text-decoration: none;
+  color: var(--muted-foreground);
+  transition: color 0.2s ease-in-out;
+}
+
+.desktop-nav a:hover {
+  color: var(--foreground);
+}
+
+/* --- Mobile Navigation (Hidden by default) --- */
+.mobile-nav {
+  display: none;
+  position: relative; /* For dropdown positioning */
+}
+
+.hamburger-menu summary {
+  list-style: none; /* Remove default dropdown arrow */
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger-menu summary::-webkit-details-marker {
+  display: none; /* Hide for Chrome/Safari */
+}
+
+.hamburger-menu ul {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  background: var(--background);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  margin: 0;
+  list-style: none;
+  width: max-content;
+  z-index: 100;
+}
+
+.hamburger-menu a {
+  display: block;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: var(--muted-foreground);
+}
+
+/* --- Media Query for Responsiveness --- */
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none; /* Hide desktop nav on mobile */
+  }
+  .mobile-nav {
+    display: block; /* Show mobile nav on mobile */
+  }
+}
