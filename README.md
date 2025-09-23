@@ -1,4 +1,6 @@
 # Go Image Processing Service (GIPS)
+![gips](https://github.com/user-attachments/assets/ea2445f9-36d4-4b53-8f55-9302efad02a9)
+
 
 An image processing service built in Go, designed to handle image uploads and perform various on-the-fly transformations.
 
