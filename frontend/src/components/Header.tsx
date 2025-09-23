@@ -1,17 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Header.css';
 
 const Header: React.FC = () => {
   return (
     <div className="header">
       <nav className="nav">
-        <div className="nav-brand">GIPS</div>
-
+        <Link to="/" className="nav-brand">GIPS</Link>
+        
         {/* --- Desktop Navigation --- */}
         <div className="desktop-nav">
-          <a href="#">Compress</a>
-          <a href="#">Resize</a>
-          <a href="#">Convert</a>
+          <Link to="/">Compress</Link>
+          <Link to="/convert">Convert</Link>
         </div>
 
         {/* --- Mobile Navigation --- */}
@@ -34,9 +34,8 @@ const Header: React.FC = () => {
               </svg>
             </summary>
             <ul>
-              <li><a href="#">Compress</a></li>
-              <li><a href="#">Resize</a></li>
-              <li><a href="#">Convert</a></li>
+              <li><Link to="/">Compress</Link></li>
+              <li><Link to="/convert">Convert</Link></li>
             </ul>
           </details>
         </div>
