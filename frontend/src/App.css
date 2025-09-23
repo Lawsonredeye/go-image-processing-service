@@ -119,3 +119,12 @@ input[type="file"] {
     max-width: 100%;
   }
 }
+
+/* Footer */
+.footer {
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  border-top: 1px solid var(--border);
+  margin-top: 4rem;
+}
