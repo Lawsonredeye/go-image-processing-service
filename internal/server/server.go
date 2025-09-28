@@ -24,7 +24,10 @@ func New(port string) *Server {
 // It will block until the server is stopped or a fatal error occurs.
 func (s *Server) Start() {
 	// Create a new mux (router)
+	rootMux := http.NewServeMux()
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("/health", api.HealthCheckHandler)
 	mux.HandleFunc("/resize", api.ResizeHandler)
 	mux.HandleFunc("/compress", api.CompressHandler)
 	mux.HandleFunc("/convert", api.ConvertHandler)
@@ -32,8 +35,10 @@ func (s *Server) Start() {
 	mux.HandleFunc("/rotate", api.RotateHandler)
 	mux.HandleFunc("/crop", api.CropHandler)
 
+	rootMux.Handle("/api/", http.StripPrefix("/api", mux))
+
 	// Wrap the mux with a CORS middleware
-	h := corsMiddleware(mux)
+	h := corsMiddleware(rootMux)
 
 	fmt.Printf("Starting server on http://localhost:%s\n", s.port)
 	log.Fatal(http.ListenAndServe(":"+s.port, h))

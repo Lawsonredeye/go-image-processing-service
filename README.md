@@ -21,32 +21,32 @@ The service exposes several endpoints for image manipulation. All endpoints expe
 - **`/resize`**: Resizes an image.
     - **Query Params**: `width` (int), `height` (int)
     - **Behavior**: Preserves aspect ratio if one dimension is omitted. Uses a default width of 500px if both are omitted.
-    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/resize?width=300"`
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/api/resize?width=300"`
 
 - **`/compress`**: Adjusts the quality of a JPEG image.
     - **Query Params**: `quality` (int, 1-100)
     - **Behavior**: Outputs a JPEG. Defaults to quality `75` if the parameter is missing or invalid.
-    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/compress?quality=50"`
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/api/compress?quality=50"`
 
 - **`/convert`**: Converts an image from one format to another.
     - **Query Params**: `format` (string, "jpeg" or "png")
     - **Behavior**: Fails if the format is missing or unsupported.
-    - **Example**: `curl -X POST -F "image=@/path/to/img.jpg" "http://localhost:8080/convert?format=png"`
+    - **Example**: `curl -X POST -F "image=@/path/to/img.jpg" "http://localhost:8080/api/convert?format=png"`
 
 - **`/flip`**: Flips an image.
     - **Query Params**: `direction` (string, "horizontal" or "vertical")
     - **Behavior**: Fails if the direction is missing or invalid.
-    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/flip?direction=horizontal"`
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/api/flip?direction=horizontal"`
 
 - **`/rotate`**: Rotates an image by a 90-degree increment.
     - **Query Params**: `angle` (int, 90, 180, or 270)
     - **Behavior**: Fails if the angle is missing or unsupported.
-    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/rotate?angle=90"`
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/api/rotate?angle=90"`
 
 - **`/crop`**: Crops an image to a specified rectangle.
     - **Query Params**: `x` (int), `y` (int), `width` (int), `height` (int)
     - **Behavior**: Fails if any parameter is missing or invalid.
-    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/crop?x=10&y=10&width=100&height=100"`
+    - **Example**: `curl -X POST -F "image=@/path/to/img.png" "http://localhost:8080/api/crop?x=10&y=10&width=100&height=100"`
 
 ## Setup and Run Instructions
 
