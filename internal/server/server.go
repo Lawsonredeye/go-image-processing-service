@@ -41,7 +41,7 @@ func (s *Server) Start() {
 	h := corsMiddleware(rootMux)
 
 	fmt.Printf("Starting server on http://localhost:%s\n", s.port)
-	log.Fatal(http.ListenAndServe(":"+s.port, h))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+s.port, h))
 }
 
 // corsMiddleware is a simple middleware to handle CORS.
