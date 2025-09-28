@@ -27,7 +27,7 @@ const Converter = () => {
     const formData = new FormData();
     formData.append('image', selectedFile);
 
-    const apiUrl = `http://localhost:8080/convert?format=${targetFormat}`;
+    const apiUrl = `http://localhost:8080/api/convert?format=${targetFormat}`;
 
     try {
       const response = await fetch(apiUrl, { method: 'POST', body: formData });
