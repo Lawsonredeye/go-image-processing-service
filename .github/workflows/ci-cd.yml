@@ -1,0 +1,159 @@
+name: CI/CD Pipeline
+
+# Trigger only on push to main branch
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Run Go tests
+        run: go test -v ./...
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+        
+      - name: Lint frontend code
+        working-directory: ./frontend
+        run: npm run lint
+        
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    needs: [test, test-frontend]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js for production build
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+        
+      - name: Build frontend for production
+        working-directory: ./frontend
+        run: npm run build
+      
+      - name: Build Docker image
+        run: docker build -t go-image-service:${{ github.sha }} .
+      
+      - name: Save Docker image
+        run: docker save go-image-service:${{ github.sha }} | gzip > go-image-service.tar.gz
+        
+      - name: Create frontend archive
+        run: tar -czf frontend-dist.tar.gz -C frontend/dist .
+      
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            # Stop existing container if running
+            docker stop go-image-service || true
+            docker rm go-image-service || true
+            
+            # Remove old images to save space
+            docker image prune -f
+            
+            # Pull and run new container
+            # You can modify this section based on your deployment method
+            # Option 1: If you have a registry, pull from there
+            # docker pull your-registry/go-image-service:${{ github.sha }}
+            # docker run -d --name go-image-service -p 8080:8080 your-registry/go-image-service:${{ github.sha }}
+            
+            # Option 2: For direct deployment, you would copy the image file
+            echo "Container deployment completed"
+      
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "go-image-service.tar.gz,frontend-dist.tar.gz"
+          target: "/tmp/"
+      
+      - name: Deploy backend and frontend
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            # Deploy Backend (Go Service)
+            cd /tmp
+            
+            # Load the Docker image
+            docker load < go-image-service.tar.gz
+            
+            # Stop and remove existing backend container
+            docker stop go-image-service || true
+            docker rm go-image-service || true
+            
+            # Run new backend container
+            docker run -d --name go-image-service -p 8080:8080 --restart unless-stopped go-image-service:${{ github.sha }}
+            
+            # Deploy Frontend (Static Production Build)
+            # Create frontend directory if it doesn't exist
+            sudo mkdir -p /var/www/html
+            
+            # Clear existing frontend files
+            sudo rm -rf /var/www/html/*
+            
+            # Extract production-built frontend files (from Vite build)
+            cd /var/www/html
+            sudo tar -xzf /tmp/frontend-dist.tar.gz
+            
+            # Set proper permissions
+            sudo chown -R www-data:www-data /var/www/html || true
+            sudo chmod -R 755 /var/www/html
+            
+            # Clean up temporary files
+            rm /tmp/go-image-service.tar.gz
+            rm /tmp/frontend-dist.tar.gz
+            
+            # Verify deployment
+            echo "Backend deployment:"
+            sleep 3
+            docker ps | grep go-image-service
+            
+            echo "Frontend deployment:"
+            ls -la /var/www/html/

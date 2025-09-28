@@ -29,7 +29,7 @@ const CompressPage = () => {
     setError(null);
     const formData = new FormData();
     formData.append('image', selectedFile);
-    const apiUrl = `http://localhost:8080/compress?quality=${quality}`;
+    const apiUrl = `http://localhost:8080/api/compress?quality=${quality}`;
     try {
       const response = await fetch(apiUrl, { method: 'POST', body: formData });
       if (!response.ok) {

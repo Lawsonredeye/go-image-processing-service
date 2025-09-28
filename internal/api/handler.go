@@ -12,6 +12,13 @@ import (
 	"github.com/disintegration/gift"
 )
 
+// HealthCheckHandler responds with a simple "OK" message to indicate the service is running.
+// It can be used for health checks by load balancers or orchestration systems.
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
 // ResizeHandler processes an image uploaded via a multipart form and resizes it.
 //
 // It expects a POST request with a form field named "image" containing the image file.
